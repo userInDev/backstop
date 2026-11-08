@@ -58,7 +58,34 @@ CREATE TABLE IF NOT EXISTS refund_attempts (
 
 CREATE INDEX IF NOT EXISTS idx_attempts_capture ON refund_attempts(capture_id, state);
 CREATE INDEX IF NOT EXISTS idx_attempts_state   ON refund_attempts(state);
+
+-- Company memory. What the desk knows that is not in any single order:
+-- this buyer's refund history, this vendor covers breakage, our policy.
+-- It is why the same sentence from two customers can get two answers.
+CREATE TABLE IF NOT EXISTS memory (
+    id          TEXT PRIMARY KEY,
+    scope       TEXT NOT NULL,   -- customer | vendor | policy | decision
+    subject     TEXT NOT NULL,   -- an email, a vendor id, or 'global'
+    fact        TEXT NOT NULL,
+    source      TEXT,            -- agent | operator | derived
+    created_at  TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_memory_subject ON memory(scope, subject);
+
+-- The envelope the agent acts inside. Money it may move unattended, and
+-- the conditions that force it to hand the decision to a person.
+CREATE TABLE IF NOT EXISTS policy (
+    key    TEXT PRIMARY KEY,
+    value  TEXT NOT NULL
+);
 """
+
+DEFAULT_POLICY = {
+    "autonomous_limit_minor": "5000",
+    "max_refunds_per_customer_90d": "3",
+    "require_approval_over_minor": "5000",
+}
 
 
 def new_id() -> str:
@@ -186,3 +213,68 @@ class Db:
                 self.settle(a.id, "unknown", error="abandoned: pending with no outcome recorded")
                 promoted.append(a.id)
         return promoted
+
+    # ---- company memory -------------------------------------------------
+
+    def remember(self, *, scope, subject, fact, source="agent"):
+        mid = new_id()
+        self.conn.execute(
+            "INSERT INTO memory (id, scope, subject, fact, source, created_at) VALUES (?,?,?,?,?,?)",
+            (mid, scope, subject, fact, source, now()),
+        )
+        return mid
+
+    def recall(self, *, scope=None, subject=None, limit=50, include_global=True):
+        q = "SELECT * FROM memory WHERE 1=1"
+        args = []
+        if scope:
+            q += " AND scope=?"
+            args.append(scope)
+        if subject:
+            if include_global:
+                q += " AND subject IN (?, 'global')"
+            else:
+                q += " AND subject = ?"
+            args.append(subject)
+        elif not include_global:
+            q += " AND subject = 'global'"
+        q += " ORDER BY created_at DESC LIMIT ?"
+        args.append(limit)
+        return _rows(self.conn.execute(q, tuple(args)).fetchall())
+
+    def forget(self, memory_id):
+        self.conn.execute("DELETE FROM memory WHERE id=?", (memory_id,))
+
+    # ---- policy ---------------------------------------------------------
+
+    def seed_policy(self, defaults=None):
+        for k, v in (defaults or DEFAULT_POLICY).items():
+            self.conn.execute("INSERT OR IGNORE INTO policy (key, value) VALUES (?,?)", (k, str(v)))
+
+    def policy(self):
+        rows = self.conn.execute("SELECT key, value FROM policy").fetchall()
+        out = dict(DEFAULT_POLICY)
+        out.update({r["key"]: r["value"] for r in rows})
+        return out
+
+    def set_policy(self, key, value):
+        self.conn.execute(
+            "INSERT INTO policy (key, value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, str(value)),
+        )
+
+    # ---- history the agent reasons over ---------------------------------
+
+    def refunds_for_buyer(self, buyer_email, *, within_days=90):
+        """How many refunds this person has had. Memory with teeth.
+
+        A capture may legally have no buyer_email, so None means "nobody",
+        not "everybody". Returning [] is the only safe reading.
+        """
+        if not buyer_email:
+            return []
+        q = ("SELECT a.* FROM refund_attempts a JOIN captures c ON c.id = a.capture_id "
+             "WHERE c.buyer_email = ? AND a.state = 'succeeded' ORDER BY a.created_at DESC")
+        rows = _rows(self.conn.execute(q, (buyer_email,)).fetchall())
+        cutoff = datetime.now(timezone.utc).timestamp() - within_days * 86400
+        return [r for r in rows if datetime.fromisoformat(r.created_at).timestamp() >= cutoff]

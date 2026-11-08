@@ -47,6 +47,7 @@ def refund(
     amount_minor: int | None = None,
     line_ids: list[str] | None = None,
     reason: str = "",
+    allow_unlined: bool = False,
 ) -> RefundResult:
     capture = db.capture(capture_id)
     if capture is None:
@@ -78,6 +79,17 @@ def refund(
         )
 
     # ---- Rule 2: lines claimed by a non-failed attempt ------------------
+    # A capture that HAS line items must be refunded BY line, or rule 2 is
+    # trivially bypassed: a bare amount names nothing, so it claims nothing,
+    # and the same cracked frame can be paid for twice while staying under the
+    # total cap. A caller that genuinely means a free-form amount has to say so
+    # out loud, and then it owns the consequence.
+    if not line_ids and db.lines(capture_id) and not allow_unlined:
+        raise Blocked(
+            f"{capture_id} has line items; refund by line or pass allow_unlined=True. "
+            f"A bare amount claims no lines and can pay for the same item twice."
+        )
+
     if line_ids:
         overlap = set(line_ids) & db.claimed_lines(capture_id)
         if overlap:

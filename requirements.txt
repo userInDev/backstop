@@ -1,6 +1,10 @@
-fastapi==0.115.6
-uvicorn==0.34.0
+# Pinned to what was actually installed and verified on Python 3.14.
+# The backstop itself and the whole test suite need only pytest and httpx;
+# fastapi/uvicorn are the console, anthropic is the agent.
+anthropic==2.6.0
+fastapi==0.162.2
 httpx==0.28.1
-python-dotenv==1.0.1
-anthropic==0.42.0
-pytest==8.3.4
+pydantic==2.14.3
+pytest==9.2.0
+python-dotenv==1.2.4
+uvicorn==0.54.0

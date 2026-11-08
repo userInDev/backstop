@@ -5,7 +5,7 @@ import pytest
 from backstop import core, reconcile
 from backstop.db import Db
 from backstop.errors import Blocked, ExceedsBalance, LineAlreadyRefunded, PayPalRefused, PayPalUnknown
-from fake_paypal import FakePayPal
+from backstop.fake import FakePayPal
 
 
 @pytest.fixture
@@ -136,3 +136,22 @@ def test_unexpected_exception_is_unknown_not_failed(db, pp):
 def test_amount_must_match_the_lines(db, pp):
     with pytest.raises(Blocked):
         core.refund(db, pp, capture_id="CAP1", amount_minor=9999, line_ids=["L-frame"], reason="mismatch")
+
+
+def test_bare_amount_cannot_bypass_the_line_claim(db, pp):
+    """Rule 2 is only meaningful if a caller cannot opt out of naming lines.
+
+    Refund the frame by line, then try to refund 4000 again naming nothing.
+    The total cap would allow it: 4000 + 4000 is well under 12000.
+    """
+    core.refund(db, pp, capture_id="CAP1", line_ids=["L-frame"], reason="cracked")
+    with pytest.raises(Blocked) as e:
+        core.refund(db, pp, capture_id="CAP1", amount_minor=4000, reason="cracked, no lines named")
+    assert "allow_unlined" in str(e.value)
+    assert pp.refund_calls == 1
+
+
+def test_unlined_refund_is_possible_but_must_be_explicit(db, pp):
+    r = core.refund(db, pp, capture_id="CAP1", amount_minor=2500,
+                    reason="goodwill, not tied to an item", allow_unlined=True)
+    assert r.state == "succeeded"
