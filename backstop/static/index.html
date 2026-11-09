@@ -14,7 +14,7 @@
  *
  * Structure is neutral. Hierarchy comes from weight, size and spacing.
  * Colour only ever carries a state:
- *     --accent   exactly one use in this file, the primary action fill
+ *     --accent   two uses, the primary action fill and the product mark
  *     --success  the succeeded pill, nothing else
  *     --danger   the unknown row and its pill, nothing else
  * Motion, not hue, carries pending and carries chaos being armed.
@@ -98,6 +98,108 @@ body{
 button{ font-family:inherit; font-size:inherit; font-weight:600; }
 input,select,textarea{ font-family:inherit; }
 
+/* ------------------------------------------------------------------ icons
+ * Icons are structural here, not decorative. A glyph is attached to a thing
+ * once -- a state, a panel, a control, a kind of fact -- and then it appears
+ * everywhere that thing appears, so the vocabulary is learned once and the
+ * same picture means the same thing in the header, in a chip, in a grid row
+ * and on a tile.
+ *
+ * Two rules keep a screen full of icons from becoming noise. Every glyph is
+ * `currentColor`, so it is neutral unless the thing it marks genuinely has a
+ * state -- the colour budget above is unchanged, icons do not get hues of
+ * their own. And the sprite is inline rather than an icon font, because the
+ * admin's font is a network call and this console has to render with the wifi
+ * off in front of a judge.
+ * -------------------------------------------------------------------- */
+.ic{
+  width:18px; height:18px; flex:none; display:block;
+  fill:none; stroke:currentColor; stroke-width:1.75;
+  stroke-linecap:round; stroke-linejoin:round;
+  pointer-events:none;
+}
+.ic.sm{ width:15px; height:15px; stroke-width:1.9; }
+.ic.xs{ width:13px; height:13px; stroke-width:2; }
+.ic.lg{ width:22px; height:22px; stroke-width:1.65; }
+
+/* The admin's stat-tile icon, carried over exactly: a rounded square washed
+   out of the glyph's own colour, so one declaration colours the wash and the
+   glyph together and the tile can never drift out of tune with its icon. */
+.isq{
+  flex:none; width:40px; height:40px; border-radius:11px;
+  display:grid; place-items:center;
+  color:var(--muted);
+  background:color-mix(in srgb, var(--ink) 7%, transparent);
+}
+.isq.md{ width:32px; height:32px; border-radius:9px; }
+.isq.md .ic{ width:17px; height:17px; }
+.isq.sm{ width:26px; height:26px; border-radius:8px; }
+.isq.sm .ic{ width:14px; height:14px; stroke-width:1.9; }
+/* The four states, and only these, are allowed to tint their square -- and a
+   tinted one mixes from its own hue, which is opaque, so 13% is really 13%. */
+.isq.s-unknown, .isq.s-succeeded{
+  background:color-mix(in srgb, currentColor 13%, transparent);
+}
+.isq.s-unknown{ color:var(--danger); }
+.isq.s-succeeded{ color:var(--success); }
+.isq.s-pending, .isq.s-failed{ color:var(--muted); }
+.isq.s-pending .ic{ animation:pulse 1.1s ease-in-out infinite; }
+.isq.ink{ color:var(--ink2); }
+
+/* An icon inside a control sits a shade quieter than the label beside it, so
+   the word still leads and the glyph is the thing the eye returns to. */
+.btn .ic{ color:var(--ink3); }
+.btn:hover .ic{ color:var(--ink2); }
+.btn.primary .ic{ color:currentColor; opacity:.72; }
+.badge .ic{ color:var(--ink3); }
+
+/* A panel header is an icon, a label and a sentence. The icon is what makes
+   four stacked panels scannable without reading any of the labels. */
+.ph .phi{ color:var(--muted); }
+
+/* Where an icon leads a line of running text rather than filling a square. */
+.ilead{ display:inline-flex; align-items:center; gap:7px; }
+.ilead .ic{ color:var(--ink3); flex:none; }
+.ilead.top{ align-items:flex-start; }
+
+/* Work in progress is the one thing motion is for here, and the glyph that
+   turns is the same refresh glyph the button carries, so the picture is a
+   state of the control rather than a separate spinner. */
+.spin{ animation:spin 1s linear infinite; transform-origin:50% 50%; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* Headings and empty states that now lead with a glyph. */
+.totals-label{ display:inline-flex; align-items:center; gap:7px; }
+.recon .rhead{ display:flex; align-items:flex-start; gap:8px; }
+.recon .rhead .ic{ flex:none; color:var(--ink3); margin-top:4px; }
+.balerr{ display:flex; align-items:flex-start; gap:9px; }
+.balerr .ic{ flex:none; color:var(--muted); margin-top:2px; }
+.detail .dh .ic{ color:var(--ink3); }
+
+/* -------------------------------------------------------------- stat tile
+ * The admin dashboard's tile, same geometry: icon square, the number at the
+ * top of the copy stack, the label under it, the explanation under that.
+ * Clickable tiles lift on hover and carry a chevron, exactly as the admin's
+ * `.dashboard-stat.is-clickable` does.
+ * -------------------------------------------------------------------- */
+.tile{
+  appearance:none; width:100%; min-width:0; text-align:left; font:inherit;
+  display:flex; align-items:center; gap:13px;
+  padding:14px; border:0; border-radius:var(--r-ctl);
+  background:var(--inset); color:var(--ink);
+}
+.tile .tcopy{ min-width:0; display:grid; gap:1px; }
+.tile .tv{ font-size:21px; font-weight:800; line-height:1.05; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+.tile .tl{ font-size:12.5px; font-weight:600; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tile .tx{ font-size:10.5px; color:var(--ink3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tile .tarrow{ margin-left:auto; flex:none; color:var(--ink3); }
+.tile.is-clickable{ cursor:pointer; transition:background .12s, box-shadow .12s, transform .12s; }
+.tile.is-clickable:hover, .tile.is-clickable:focus-visible{
+  transform:translateY(-1px); background:var(--control); box-shadow:var(--shadow); outline:none;
+}
+.tile.sel{ background:var(--control-hover); box-shadow:inset 0 0 0 2px var(--ink3); }
+.tile.hot .tv{ color:var(--danger); }
+
 /* ----------------------------------------------------------------- header */
 header.top{
   position:sticky; top:0; z-index:50;
@@ -107,7 +209,11 @@ header.top{
 }
 body.armed header.top{ border-top:3px solid var(--ink); }
 .hrow{ display:flex; align-items:center; gap:10px; padding:14px 32px; flex-wrap:wrap; }
-.brand{ display:flex; align-items:baseline; gap:12px; min-width:0; }
+.brand{ display:flex; align-items:center; gap:12px; min-width:0; }
+/* The product mark. A shield with a check in it, which is the whole claim:
+   a refund goes through or it does not, and it never goes through twice. */
+.brand .mark{ color:var(--accent); background:color-mix(in srgb, var(--accent) 13%, transparent); }
+.brand .btext{ display:flex; align-items:baseline; gap:11px; min-width:0; flex-wrap:wrap; }
 .brand h1{ margin:0; font-size:21px; font-weight:800; letter-spacing:-.018em; }
 .brand .tag{ color:var(--muted); font-size:14.5px; font-weight:500; }
 .spacer{ flex:1 1 auto; }
@@ -177,7 +283,7 @@ body.armed .ticker{
   border-top:1px solid var(--line);
   color:var(--ink2); font-weight:600; font-size:14.5px;
 }
-.ticker .dot{ width:9px; height:9px; border-radius:50%; background:var(--ink); flex:none; animation:pulse 1.1s ease-in-out infinite; }
+.ticker .ic{ color:var(--ink); animation:pulse 1.1s ease-in-out infinite; }
 
 /* ----------------------------------------------------------------- banner */
 .banner{
@@ -185,18 +291,23 @@ body.armed .ticker{
   padding:14px 32px; border-top:1px solid var(--line);
   background:var(--surface); min-height:58px;
 }
+/* The banner leads with the outcome's own glyph rather than a word in a box,
+   so the three buckets are told apart at a glance from across a room: a tick
+   for succeeded, a slashed circle for refused, a question mark for unknown. */
 .banner .bk-tag{
-  flex:none; padding:4px 11px; border-radius:7px;
+  flex:none; display:inline-flex; align-items:center; gap:8px;
+  padding:5px 12px 5px 9px; border-radius:999px;
   font-size:13.5px; font-weight:700;
   border:0; background:var(--control); color:var(--muted);
 }
+.banner .bk-tag .ic{ width:16px; height:16px; }
 .banner .bk-body{ min-width:0; display:flex; flex-direction:column; gap:1px; }
 .banner .bk-title{ font-weight:800; font-size:17px; }
 .banner .bk-detail{ color:var(--ink2); font-size:15px; overflow-wrap:anywhere; }
 .banner .bk-meta{ margin-left:auto; flex:none; color:var(--muted); font-size:14px; }
 /* Only the unknown banner is allowed a hue, and it is the same hue as the row. */
 .banner.kind-unknown{ background:var(--unknown-row); border-top-color:var(--danger); }
-.banner.kind-unknown .bk-tag{ border-color:var(--danger); color:var(--danger); background:transparent; font-weight:800; }
+.banner.kind-unknown .bk-tag{ color:var(--danger); background:color-mix(in srgb, var(--danger) 12%, transparent); font-weight:800; }
 .banner.kind-unknown .bk-title{ color:var(--danger); }
 
 /* ----------------------------------------------------------------- layout */
@@ -209,9 +320,10 @@ section.panel{
 /* A section header is a label, not a title bar: no rule under it, no second
    background, and the heading sits quieter than the data it introduces. */
 .ph{
-  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
-  padding:22px 26px 0; background:transparent; border:0;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:20px 26px 0; background:transparent; border:0;
 }
+.ph .phtext{ display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; min-width:0; }
 .ph h2{
   margin:0; font-size:15px; font-weight:700; color:var(--muted);
   letter-spacing:.005em;
@@ -238,11 +350,15 @@ select{
   background:var(--inset); border:0; border-radius:var(--r-ctl);
   padding:14px; max-height:360px; overflow:auto; min-height:98px;
 }
-.step{ border-left:2px solid var(--line2); padding:5px 0 7px 12px; margin-bottom:9px; }
+/* A step is one row in the agent's own account of what it did. The glyph says
+   which kind it is -- a thought, a tool call, a hand-off -- which is the thing
+   a judge is actually scanning for. */
+.step{ display:flex; gap:11px; padding:5px 0 8px; margin-bottom:7px; }
 .step:last-child{ margin-bottom:0; }
+.step-body{ min-width:0; flex:1 1 auto; }
 .step-head{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
 .step-type{
-  font-size:12.5px; font-weight:700; padding:3px 9px; border-radius:6px;
+  font-size:12.5px; font-weight:700; padding:2px 9px; border-radius:999px;
   background:var(--control); color:var(--muted); border:0;
 }
 .step-name{ font-weight:700; font-size:15px; color:var(--ink); }
@@ -251,11 +367,14 @@ select{
   font-family:var(--sans); font-size:14px; font-weight:500; color:var(--ink2); line-height:1.5;
   font-variant-numeric:tabular-nums; font-feature-settings:"tnum";
 }
-.step.t-tool{ border-left-color:var(--ink3); }
+.step.t-tool .isq{ color:var(--ink2); }
+.step.t-escalate .isq{ color:var(--ink2); }
 .outcome{
+  display:flex; gap:13px; align-items:flex-start;
   margin-top:12px; padding:13px 15px; border-radius:var(--r-ctl); border:0;
   background:var(--inset); font-size:15px;
 }
+.outcome .obody{ min-width:0; }
 .outcome .ot{ font-weight:800; font-size:15px; }
 .outcome .oe{ color:var(--muted); font-size:14px; margin-top:4px; }
 
@@ -265,10 +384,14 @@ select{
   display:block; margin-top:14px; padding:14px 16px; border-radius:var(--r-ctl);
   background:var(--inset); border:0;
 }
+.escalation.show{ display:flex; gap:13px; align-items:flex-start; }
+.escalation .ebody{ min-width:0; }
 .escalation .etag{
-  display:inline-block; padding:3px 10px; border-radius:6px; font-size:13px; font-weight:700;
-  border:1px solid var(--line2); color:var(--muted); margin-bottom:6px;
+  display:inline-flex; align-items:center; gap:6px;
+  padding:2px 10px 2px 8px; border-radius:999px; font-size:13px; font-weight:700;
+  border:0; background:var(--control); color:var(--muted); margin-bottom:5px;
 }
+.escalation .etag .ic{ width:13px; height:13px; }
 .escalation .eh{ display:block; font-weight:800; font-size:15.5px; }
 .escalation .eb{ display:block; color:var(--ink2); font-size:14.5px; margin-top:2px; }
 
@@ -276,16 +399,21 @@ select{
 .memory-grid{ display:grid; grid-template-columns:1.2fr 1fr; gap:16px; }
 @media (max-width:1000px){ .memory-grid{ grid-template-columns:1fr; } }
 .mcard{ background:var(--inset); border:0; border-radius:var(--r-ctl); padding:16px 18px; }
-.mcard .mtitle{ font-weight:700; font-size:15.5px; margin-bottom:8px; }
+.mcard .mtitle{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:15.5px; margin-bottom:9px; flex-wrap:wrap; }
+.mcard .mtitle .isq{ color:var(--ink2); }
 .mcard .mtitle .mhint{ color:var(--muted); font-weight:500; font-size:14px; margin-left:8px; }
-.mrow{ display:flex; align-items:baseline; gap:12px; padding:9px 0; border-bottom:1px solid var(--line); }
+.mrow{ display:flex; align-items:center; gap:11px; padding:9px 0; border-bottom:1px solid var(--line); }
+.mrow .mi{ flex:none; color:var(--ink3); }
 .mrow:last-child{ border-bottom:0; }
 .mrow .mk{ color:var(--muted); font-size:14px; font-weight:600; min-width:150px; }
 .mrow .mv{ font-size:15px; color:var(--ink); overflow-wrap:anywhere; }
 .mrow .msrc{
-  margin-left:auto; flex:none; font-size:12.5px; font-weight:700;
-  padding:2px 9px; border-radius:6px; border:1px solid var(--line2); color:var(--muted);
+  margin-left:auto; flex:none; display:inline-flex; align-items:center; gap:6px;
+  font-size:12.5px; font-weight:700;
+  padding:2px 10px 2px 8px; border-radius:999px; border:0;
+  background:var(--control); color:var(--muted);
 }
+.mrow .msrc .ic{ width:12px; height:12px; }
 .placeholder{
   border:1px dashed var(--line2); border-radius:var(--r-ctl); padding:15px;
   color:var(--muted); font-size:14.5px; line-height:1.5;
@@ -296,15 +424,19 @@ select{
 .chips-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:4px 26px 14px; }
 .schip{
   display:inline-flex; align-items:center; gap:8px; cursor:pointer;
-  padding:7px 14px; border-radius:999px; border:0; background:var(--control);
+  padding:6px 14px 6px 10px; border-radius:999px; border:0; background:var(--control);
   font-size:14.5px; font-weight:600; color:var(--ink2);
 }
+.schip .ic{ width:16px; height:16px; color:var(--ink3); }
+.schip.sel .ic{ color:var(--surface); opacity:.8; }
 .schip .n{ font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 .schip:hover{ background:var(--control-hover); }
 .schip.sel{ background:var(--ink); color:var(--surface); }
 .schip.sel .n{ color:var(--surface); }
 .schip.s-unknown.hot{ background:var(--unknown-row); color:var(--danger); }
 .schip.s-unknown.hot .n{ color:var(--danger); }
+.schip.s-unknown.hot .ic{ color:var(--danger); }
+.schip.s-pending .n ~ .ic, .schip.s-pending .ic{ }
 .ledger{
   margin-left:auto; display:inline-flex; align-items:baseline; gap:10px;
   padding:8px 15px; border-radius:var(--r-ctl); border:0; background:var(--inset);
@@ -316,10 +448,15 @@ select{
 .livedot{ display:inline-flex; align-items:center; gap:7px; color:var(--muted); font-size:14px; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 .livedot i{ width:8px; height:8px; border-radius:50%; background:var(--ink3); animation:pulse 2.2s infinite; }
 
+/* The glyph sits inside the field rather than beside it, so the control reads
+   as one object and the placeholder is not doing the work of an icon. */
+.qfwrap{ position:relative; display:inline-flex; align-items:center; }
+.qfwrap > .ic{ position:absolute; left:12px; color:var(--ink3); pointer-events:none; }
 input.qf{
   background:var(--control); color:var(--ink); border:0; border-radius:var(--r-ctl);
-  padding:10px 13px; font-size:15px; min-width:220px; font-weight:500;
+  padding:10px 13px 10px 34px; font-size:15px; min-width:220px; font-weight:500;
 }
+input.qf::-webkit-search-cancel-button{ cursor:pointer; }
 input.qf:focus{ outline:2px solid var(--ink3); outline-offset:-2px; }
 input.qf::placeholder{ color:var(--ink3); }
 
@@ -328,13 +465,14 @@ input.qf::placeholder{ color:var(--ink3); }
 .recon.show{ display:block; }
 .recon .rhead{ font-size:15.5px; margin-bottom:9px; color:var(--ink2); }
 .recon .rhead b{ color:var(--ink); font-weight:800; }
-.recon .tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-@media (max-width:900px){ .recon .tiles{ grid-template-columns:repeat(2,1fr); } }
-.rtile{ border:0; border-radius:var(--r-ctl); padding:12px 15px; background:var(--inset); }
-.rtile .rl{ font-size:13.5px; font-weight:700; color:var(--muted); }
-.rtile .rv{ font-size:24px; font-weight:800; line-height:1.2; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
-.rtile .rx{ font-size:13.5px; color:var(--muted); margin-top:2px; overflow-wrap:anywhere; }
+.recon .tiles{ display:grid; grid-template-columns:repeat(auto-fit,minmax(205px,1fr)); gap:10px; }
+.rtile{ display:flex; align-items:center; gap:13px; border:0; border-radius:var(--r-ctl); padding:13px 15px; background:var(--inset); }
+.rtile .rcopy{ min-width:0; display:grid; gap:1px; }
+.rtile .rl{ font-size:12.5px; font-weight:600; color:var(--muted); }
+.rtile .rv{ font-size:21px; font-weight:800; line-height:1.05; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
+.rtile .rx{ font-size:10.5px; color:var(--ink3); overflow-wrap:anywhere; }
 .rtile.t-still.hot .rv{ color:var(--danger); }
+.rtile.t-still.hot .isq{ color:var(--danger); }
 
 /* --------------------------------------------------------- detail panel */
 .detail{ border-top:1px solid var(--line); background:var(--inset); padding:18px 26px; }
@@ -349,7 +487,9 @@ input.qf::placeholder{ color:var(--ink3); }
 /* --------------------------------------------------------------- captures */
 .cap{ border:0; border-radius:var(--r-ctl); background:var(--inset); margin-bottom:14px; overflow:hidden; }
 .cap:last-child{ margin-bottom:0; }
-.cap-h{ display:flex; align-items:center; gap:15px; flex-wrap:wrap; padding:16px 18px 12px; border:0; }
+.cap-h{ display:flex; align-items:center; gap:13px; flex-wrap:wrap; padding:15px 18px 12px; border:0; }
+.cap-h .isq{ color:var(--ink2); }
+.cap-idwrap{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; min-width:0; }
 .cap-id{ font-size:18px; font-weight:800; }
 .cap-meta{ color:var(--muted); font-size:14px; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 .cap-bal{ margin-left:auto; text-align:right; }
@@ -358,7 +498,8 @@ input.qf::placeholder{ color:var(--ink3); }
 .cap-bal .bv.err{ font-size:17px; color:var(--muted); }
 .balerr{ padding:12px 18px; background:transparent; border-top:1px solid var(--line); color:var(--ink2); font-size:14.5px; }
 .balerr b{ color:var(--ink); font-weight:700; }
-.lrow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:12px 18px; border-top:1px solid var(--line); }
+.lrow{ display:flex; align-items:center; gap:13px; flex-wrap:wrap; padding:11px 18px; border-top:1px solid var(--line); }
+.lrow .licon{ color:var(--ink3); }
 .lrow:last-child{ border-bottom:0; }
 .cap-h + .lrow{ border-top:1px solid var(--line); }
 .lid{ font-size:15px; font-weight:700; color:var(--ink2); min-width:88px; }
@@ -366,35 +507,48 @@ input.qf::placeholder{ color:var(--ink3); }
 .lsku{ font-size:13.5px; color:var(--ink3); }
 .lright{ margin-left:auto; display:flex; align-items:center; gap:12px; }
 .lamt{ font-size:17px; font-weight:800; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
-.claimed{ font-size:13px; font-weight:700; padding:3px 9px; border-radius:6px; border:1px solid var(--line2); color:var(--muted); }
+.claimed{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:13px; font-weight:700; padding:3px 10px 3px 8px; border-radius:999px;
+  border:0; background:var(--control); color:var(--muted);
+}
+.claimed .ic{ width:13px; height:13px; }
 .willrefuse{ font-size:13.5px; color:var(--muted); }
-.empty{ color:var(--muted); padding:16px; text-align:center; font-size:15px; }
+/* An empty state is a glyph above a sentence, centred, because the sentence
+   on its own looks like a loading bug. */
+.empty{
+  display:flex; flex-direction:column; align-items:center; gap:9px;
+  color:var(--muted); padding:22px 16px; text-align:center; font-size:15px;
+}
+.empty .ic{ color:var(--ink3); }
 
 /* -------------------------------------------------------------- the grid */
 #grid{ height:220px; width:100%; transition:height .18s ease; }
 .grid-wrap{ padding:12px 18px 16px; }
 
+/* The state pill is the one label that has to be readable in a video frame at
+   half size, so it is a glyph plus a word: the tick, the clock, the question
+   mark and the dash are each distinguishable with the colour taken away. */
 .pill{ display:inline-flex; align-items:center; gap:7px; font-size:14.5px; font-weight:700; color:var(--ink2); }
-.pill .dot{ width:8px; height:8px; border-radius:50%; background:var(--ink3); flex:none; }
+.pill .ic{ width:16px; height:16px; }
 .pill-succeeded{ color:var(--success); }
-.pill-succeeded .dot{ background:var(--success); }
 .pill-failed{ color:var(--ink3); }
-.pill-failed .dot{ background:var(--ink3); }
 /* pending is motion, not hue */
 .pill-pending{ color:var(--ink2); }
-.pill-pending .dot{ background:var(--ink2); animation:pulse 1.1s ease-in-out infinite; }
+.pill-pending .ic{ animation:pulse 1.1s ease-in-out infinite; }
 .pill-unknown{ color:var(--danger); font-weight:800; }
-.pill-unknown .dot{ background:var(--danger); animation:pulse 1.1s ease-in-out infinite; }
+.pill-unknown .ic{ animation:pulse 1.1s ease-in-out infinite; }
 
 /* A grid cell is a flex container, so an inline-block child stretches to the
    full row height and its border then reads as a box spilling out of the row.
    align-self plus an explicit line-height keeps the chip chip-sized. */
 .chip-line{
-  display:inline-flex; align-items:center; align-self:center;
-  margin-right:5px; padding:3px 10px; border-radius:999px;
+  display:inline-flex; align-items:center; align-self:center; gap:5px;
+  margin-right:5px; padding:3px 10px 3px 7px; border-radius:999px;
   background:var(--control); border:0; color:var(--ink2);
   font-size:13px; font-weight:600; line-height:1.35; white-space:nowrap;
 }
+.chip-line .ic{ width:12px; height:12px; color:var(--ink3); }
 .ag-cell .chip-line:last-child{ margin-right:0; }
 /* The renderer returns a span, so THAT is the flex child that stretches. */
 .ag-cell[col-id="lines"] > span{ display:inline-flex; align-items:center; height:100%; }
@@ -410,45 +564,109 @@ input.qf::placeholder{ color:var(--ink3); }
 .cell-error{ color:var(--muted); }
 .totals-label{ font-weight:800; color:var(--ink); }
 
-.no-rows{ color:var(--muted); font-size:15px; text-align:center; padding:14px 10px; line-height:1.5; }
-.no-rows b{ color:var(--ink); display:block; font-size:16.5px; margin-bottom:3px; font-weight:800; }
+.no-rows{
+  display:flex; flex-direction:column; align-items:center; gap:7px;
+  color:var(--muted); font-size:15px; text-align:center; padding:16px 10px; line-height:1.5;
+}
+.no-rows .ic{ color:var(--ink3); }
+.no-rows b{ color:var(--ink); display:block; font-size:16.5px; font-weight:800; }
 
 /* ------------------------------------------------------- the rules, quiet */
 .rulesline{
-  max-width:1680px; margin:0 auto; padding:2px 22px 0;
+  max-width:1600px; margin:0 auto; padding:2px 32px 0;
   color:var(--muted); font-size:14px; line-height:1.7;
 }
-.rulesline .rk{ color:var(--ink2); font-weight:700; }
+.rulesline .rk{ display:inline-flex; align-items:center; gap:8px; color:var(--ink2); font-weight:700; }
+.rulesline .rk .ic{ color:var(--ink3); }
+/* Inline, not block: in a paragraph the glyph is a word, not a row. */
+.rulesline .ic{ display:inline-block; vertical-align:-3px; margin-right:5px; color:var(--ink3); }
 .rulesline .sep{ color:var(--ink3); margin:0 8px; }
-footer.foot{ max-width:1680px; margin:0 auto; padding:10px 22px 0; color:var(--muted); font-size:14px; }
+/* The rule number is the handle everything else in the console refers to --
+   a banner says "rule 2", a line row says "rule 2 will refuse this" -- so it
+   gets a mark of its own rather than being a bare digit in a sentence. */
+.rulesline .rn{
+  display:inline-grid; place-items:center;
+  width:19px; height:19px; margin-right:5px; border-radius:6px;
+  background:var(--control); color:var(--ink2);
+  font-size:11.5px; font-weight:800; vertical-align:-3px;
+  font-variant-numeric:tabular-nums;
+}
+footer.foot{ display:flex; gap:11px; align-items:flex-start; max-width:1600px; margin:0 auto; padding:10px 32px 0; color:var(--muted); font-size:14px; }
+footer.foot .ic{ color:var(--ink3); margin-top:3px; }
 footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
 </style>
 </head>
 <body>
 
+<!-- ===================================================================== -->
+<!-- Icon sprite. Inline and stroke-based on purpose: the admin uses an icon  -->
+<!-- font, which is a network dependency, and this console has to render with -->
+<!-- the wifi off in front of a judge. Same vocabulary, same names.           -->
+<!-- ===================================================================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7.5 3v5.2c0 4.4-3 8-7.5 9.3C7.5 19.2 4.5 15.6 4.5 11.2V6L12 3z"/><path d="M8.8 11.8l2.3 2.3 4.1-4.6"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v4.5M15 3v4.5M6.8 7.5h10.4v3.2a5.2 5.2 0 0 1-10.4 0V7.5zM12 15.9V21"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.2a2.8 2.8 0 1 1 3.7 2.6c-.7.3-1 .9-1 1.6v.4"/><path d="M12 17.2h.01"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.7 8.7 0 1 0 10.8 10.8z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.3M12 19.2v2.3M4.2 4.2l1.6 1.6M18.2 18.2l1.6 1.6M2.5 12h2.3M19.2 12h2.3M4.2 19.8l1.6-1.6M18.2 5.8l1.6-1.6"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13.2 2.5L5.5 13.4h5.4l-.9 8.1 7.7-10.9h-5.4l.9-8.1z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1"/><path d="M20.5 3.8v5.3h-5.3"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.2 12.2l2.6 2.6 5-5.4"/></symbol>
+  <symbol id="i-block" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></symbol>
+  <symbol id="i-escalate" viewBox="0 0 24 24"><path d="M12 3.2v10.4M8 7.2l4-4 4 4"/><path d="M4 14.8V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4.2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11.2v5.4M12 7.8h.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2.1"/></symbol>
+  <symbol id="i-minus-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.2 12h7.6"/></symbol>
+  <symbol id="i-comment" viewBox="0 0 24 24"><path d="M20.8 11.6a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-.9L3.2 20.6l1.2-4.4a8.4 8.4 0 0 1-1.2-4.6 8.6 8.6 0 0 1 8.6-8.4 8.4 8.4 0 0 1 9 8.4z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8.5 6.2h12M8.5 12h12M8.5 17.8h12M4 6.2h.01M4 12h.01M4 17.8h.01"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="2.8" y="5" width="18.4" height="14" rx="2.4"/><path d="M2.8 9.8h18.4M6.6 14.8h4.2"/></symbol>
+  <symbol id="i-memory" viewBox="0 0 24 24"><path d="M12 3.2c4.4 0 7.8 1.3 7.8 2.9s-3.4 2.9-7.8 2.9S4.2 7.7 4.2 6.1 7.6 3.2 12 3.2z"/><path d="M4.2 6.1v11.8c0 1.6 3.4 2.9 7.8 2.9s7.8-1.3 7.8-2.9V6.1"/><path d="M4.2 12c0 1.6 3.4 2.9 7.8 2.9s7.8-1.3 7.8-2.9"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21.3 2.7L10.6 13.4M21.3 2.7l-6.8 18.6-3.9-8-8-3.9 18.6-6.7z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="7"/><path d="M20 20l-4.2-4.2"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.2v11.6M7.4 10.2L12 14.8l4.6-4.6M4 19.8h16"/></symbol>
+  <symbol id="i-scales" viewBox="0 0 24 24"><circle cx="12" cy="4.4" r="1.6"/><path d="M12 6v14.4M8 20.4h8M4.6 8.8h14.8"/><path d="M4.6 8.8L2 14.4h5.2L4.6 8.8zM19.4 8.8l-2.6 5.6H22l-2.6-5.6z"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V4M5.8 10.2L12 4l6.2 6.2"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M20.8 7.8L12 3 3.2 7.8 12 12.6l8.8-4.8z"/><path d="M3.2 7.8v8.4L12 21l8.8-4.8V7.8M12 12.6V21"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.6" y="10.2" width="14.8" height="10.4" rx="2.2"/><path d="M7.8 10.2V7.4a4.2 4.2 0 0 1 8.4 0v2.8"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M3.2 8.4h11.4a5.8 5.8 0 0 1 0 11.6H8.6"/><path d="M7.6 3.8L3.2 8.4l4.4 4.6"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3.2l1.9 5.9 5.9 1.9-5.9 1.9L12 18.8l-1.9-5.9-5.9-1.9 5.9-1.9L12 3.2z"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.2 7.2L3.6 12l4.6 4.8M15.8 7.2L20.4 12l-4.6 4.8M13.6 4.4l-3.2 15.2"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="15.8" cy="8.2" r="4.6"/><path d="M12.6 11.4L3.4 20.6M6.2 17.8l2.4 2.4M8.8 15.2l2.4 2.4"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9.4 5.8L15.6 12l-6.2 6.2"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4.2"/><path d="M4.2 20.6a7.8 7.8 0 0 1 15.6 0"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.4 13.4l-7 7a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 2.8 12V5.2a2 2 0 0 1 2-2H11.6a2 2 0 0 1 1.4.6l7.4 7.4a2 2 0 0 1 0 2.2z"/><path d="M7.4 7.6h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.6L2.2 20.4h19.6L12 3.6z"/><path d="M12 10v4.4M12 17.6h.01"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3.4v17.2l2.3-1.4 2.4 1.4 2.3-1.4 2.4 1.4 2.3-1.4 2 1.4V3.4H5z"/><path d="M8.4 8.4h7.2M8.4 12.6h4.6"/></symbol>
+</defs></svg>
+
 <header class="top">
   <div class="hrow">
     <div class="brand">
-      <h1>Backstop</h1>
-      <span class="tag">Refund operations console. An agent that structurally cannot refund twice.</span>
+      <span class="isq mark"><svg class="ic lg" aria-hidden="true"><use href="#i-shield"/></svg></span>
+      <div class="btext">
+        <h1>Backstop</h1>
+        <span class="tag">Refund operations console. An agent that structurally cannot refund twice.</span>
+      </div>
     </div>
     <div class="spacer"></div>
-    <span class="badge"><span>Provider</span> <b id="provider-name">unknown</b></span>
-    <span class="badge"><span>Unresolved</span> <b id="unresolved-n" class="num">0</b></span>
-    <button class="btn" id="theme-btn" aria-pressed="false">Dark</button>
+    <span class="badge"><svg class="ic sm" aria-hidden="true"><use href="#i-plug"/></svg><span>Provider</span> <b id="provider-name">unknown</b></span>
+    <span class="badge" title="Attempts that are pending or unknown. Nothing new may be refunded while this is above zero."><svg class="ic sm" aria-hidden="true"><use href="#i-help"/></svg><span>Unresolved</span> <b id="unresolved-n" class="num">0</b></span>
+    <button class="btn" id="theme-btn" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg><span id="theme-label">Dark</span></button>
     <button class="chaos" id="chaos-btn" role="switch" aria-checked="false" aria-label="Chaos mode">
+      <svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg>
       <span class="sw" aria-hidden="true"></span>
       <span class="lbl-off">Chaos off</span>
       <span class="lbl-on">Chaos armed</span>
     </button>
-    <button class="btn" id="seed-btn" title="Clear attempts and re-seed the demo capture">Reset demo data</button>
+    <button class="btn" id="seed-btn" title="Clear attempts and re-seed the demo capture"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Reset demo data</button>
   </div>
   <div class="ticker">
-    <span class="dot"></span>
+    <svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg>
     <span>Chaos armed. The refund request is really sent, the response is thrown away, so every refund will land in unknown.</span>
   </div>
   <div class="banner kind-idle" id="banner">
-    <span class="bk-tag" id="bk-tag">Ready</span>
+    <span class="bk-tag" id="bk-tag"><svg class="ic" aria-hidden="true"><use href="#i-dot"/></svg><span id="bk-tag-text">Ready</span></span>
     <div class="bk-body">
       <span class="bk-title" id="bk-title">Console idle</span>
       <span class="bk-detail" id="bk-detail">Every refusal below is the backstop doing its job, not an error.</span>
@@ -462,30 +680,39 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   <!-- 1. the customer message and the agent -->
   <section class="panel">
     <div class="ph">
-      <h2>Customer message</h2>
-      <span class="sub">The agent reads it, decides, and goes through the backstop like everything else.</span>
+      <span class="isq md phi"><svg class="ic" aria-hidden="true"><use href="#i-comment"/></svg></span>
+      <div class="phtext">
+        <h2>Customer message</h2>
+        <span class="sub">The agent reads it, decides, and goes through the backstop like everything else.</span>
+      </div>
       <div class="spacer"></div>
-      <span class="badge" id="agent-mode"><span>Agent</span> <b>idle</b></span>
+      <span class="badge" id="agent-mode"><svg class="ic sm" aria-hidden="true"><use href="#i-sparkle"/></svg><span>Agent</span> <b>idle</b></span>
     </div>
     <div class="pb">
       <div class="agent-grid">
         <div>
           <textarea id="agent-msg" spellcheck="false">the frame arrived cracked, just the frame, not the prints</textarea>
           <div class="field-row">
-            <label class="flabel" for="agent-cap">Capture</label>
+            <label class="flabel ilead" for="agent-cap"><svg class="ic sm" aria-hidden="true"><use href="#i-receipt"/></svg>Capture</label>
             <select id="agent-cap"></select>
             <div class="spacer"></div>
-            <button class="btn primary" id="agent-send">Send to agent</button>
+            <button class="btn primary" id="agent-send"><svg class="ic" aria-hidden="true"><use href="#i-send"/></svg>Send to agent</button>
           </div>
           <div class="escalation" id="escalation">
-            <span class="etag">Escalated</span>
-            <span class="eh" id="esc-title">Handed to a human, no money moved</span>
-            <span class="eb" id="esc-body"></span>
+            <span class="isq md ink"><svg class="ic" aria-hidden="true"><use href="#i-escalate"/></svg></span>
+            <div class="ebody">
+              <span class="etag"><svg class="ic" aria-hidden="true"><use href="#i-escalate"/></svg>Escalated</span>
+              <span class="eh" id="esc-title">Handed to a human, no money moved</span>
+              <span class="eb" id="esc-body"></span>
+            </div>
           </div>
         </div>
         <div>
           <div class="transcript" id="transcript">
-            <div class="empty">No transcript yet. Send the message and every tool call the agent makes appears here.</div>
+            <div class="empty">
+              <svg class="ic lg" aria-hidden="true"><use href="#i-sparkle"/></svg>
+              <div>No transcript yet. Send the message and every tool call the agent makes appears here.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -495,14 +722,20 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   <!-- 2. the grid, the centrepiece -->
   <section class="panel">
     <div class="ph">
-      <h2>Refund attempts</h2>
-      <span class="sub">Every row was written <em>before</em> its PayPal call.</span>
+      <span class="isq md phi"><svg class="ic" aria-hidden="true"><use href="#i-list"/></svg></span>
+      <div class="phtext">
+        <h2>Refund attempts</h2>
+        <span class="sub">Every row was written <em>before</em> its PayPal call.</span>
+      </div>
       <div class="spacer"></div>
       <span class="livedot"><i></i><span id="stamp">starting</span></span>
+      <span class="qfwrap">
+      <svg class="ic sm" aria-hidden="true"><use href="#i-search"/></svg>
       <input class="qf" id="qf" type="search" placeholder="Filter attempts" aria-label="Filter attempts">
-      <button class="btn" id="csv-btn" title="Export the filtered rows as CSV">Export CSV</button>
-      <button class="btn" id="refresh-btn">Refresh</button>
-      <button class="btn" id="recon-btn" title="Read PayPal's own refund list and settle unknowns">Run reconciler</button>
+    </span>
+      <button class="btn" id="csv-btn" title="Export the filtered rows as CSV"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Export CSV</button>
+      <button class="btn" id="refresh-btn"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg>Refresh</button>
+      <button class="btn" id="recon-btn" title="Read PayPal's own refund list and settle unknowns"><svg class="ic" aria-hidden="true"><use href="#i-scales"/></svg>Run reconciler</button>
     </div>
 
     <div class="chips-row" id="chips"></div>
@@ -510,10 +743,10 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
     <div class="recon" id="recon">
       <div class="rhead" id="recon-head"></div>
       <div class="tiles">
-        <div class="rtile t-promoted"><div class="rl">Promoted</div><div class="rv" id="rt-promoted">0</div><div class="rx">pending to unknown<span id="rx-promoted"></span></div></div>
-        <div class="rtile t-settled"><div class="rl">Settled</div><div class="rv" id="rt-settled">0</div><div class="rx">unknown to succeeded<span id="rx-settled"></span></div></div>
-        <div class="rtile t-cleared"><div class="rl">Cleared</div><div class="rv" id="rt-cleared">0</div><div class="rx">unknown to failed<span id="rx-cleared"></span></div></div>
-        <div class="rtile t-still"><div class="rl">Still unknown</div><div class="rv" id="rt-still">0</div><div class="rx">no answer from PayPal<span id="rx-still"></span></div></div>
+        <div class="rtile t-promoted"><span class="isq"><svg class="ic" aria-hidden="true"><use href="#i-arrow-up"/></svg></span><div class="rcopy"><div class="rv" id="rt-promoted">0</div><div class="rl">Promoted</div><div class="rx">pending to unknown<span id="rx-promoted"></span></div></div></div>
+        <div class="rtile t-settled"><span class="isq s-succeeded"><svg class="ic" aria-hidden="true"><use href="#i-check-circle"/></svg></span><div class="rcopy"><div class="rv" id="rt-settled">0</div><div class="rl">Settled</div><div class="rx">unknown to succeeded<span id="rx-settled"></span></div></div></div>
+        <div class="rtile t-cleared"><span class="isq"><svg class="ic" aria-hidden="true"><use href="#i-minus-circle"/></svg></span><div class="rcopy"><div class="rv" id="rt-cleared">0</div><div class="rl">Cleared</div><div class="rx">unknown to failed<span id="rx-cleared"></span></div></div></div>
+        <div class="rtile t-still"><span class="isq"><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg></span><div class="rcopy"><div class="rv" id="rt-still">0</div><div class="rl">Still unknown</div><div class="rx">no answer from PayPal<span id="rx-still"></span></div></div></div>
       </div>
     </div>
 
@@ -521,6 +754,7 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
 
     <div class="detail" id="detail">
       <div class="dh">
+        <svg class="ic sm" aria-hidden="true"><use href="#i-chevron"/></svg>
         <h3 id="detail-title">Attempt detail</h3>
         <span class="hint" id="detail-hint">Select a row to open it.</span>
       </div>
@@ -531,8 +765,11 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   <!-- 3. captures -->
   <section class="panel">
     <div class="ph">
-      <h2>Captures</h2>
-      <span class="sub">The refundable balance is read live from PayPal on every load, never from our table.</span>
+      <span class="isq md phi"><svg class="ic" aria-hidden="true"><use href="#i-receipt"/></svg></span>
+      <div class="phtext">
+        <h2>Captures</h2>
+        <span class="sub">The refundable balance is read live from PayPal on every load, never from our table.</span>
+      </div>
     </div>
     <div class="pb" id="captures">
       <div class="empty">Loading</div>
@@ -542,14 +779,17 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   <!-- 4. company memory and the policy envelope -->
   <section class="panel">
     <div class="ph">
-      <h2>Agent memory</h2>
-      <span class="sub">What the agent recalled about this buyer, and the policy it is allowed to act inside.</span>
+      <span class="isq md phi"><svg class="ic" aria-hidden="true"><use href="#i-memory"/></svg></span>
+      <div class="phtext">
+        <h2>Agent memory</h2>
+        <span class="sub">What the agent recalled about this buyer, and the policy it is allowed to act inside.</span>
+      </div>
       <div class="spacer"></div>
-      <span class="badge" id="memory-badge"><span>Envelope</span> <b>awaiting wiring</b></span>
+      <span class="badge" id="memory-badge"><svg class="ic sm" aria-hidden="true"><use href="#i-key"/></svg><span>Envelope</span> <b>awaiting wiring</b></span>
     </div>
     <div class="pb memory-grid">
       <div class="mcard">
-        <div class="mtitle">Recalled about this buyer <span class="mhint">facts the agent carried into this decision</span></div>
+        <div class="mtitle"><span class="isq sm"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg></span><span>Recalled about this buyer</span> <span class="mhint">facts the agent carried into this decision</span></div>
         <div id="memory-facts">
           <div class="placeholder">
             <b>Placeholder, styled and ready to wire.</b>
@@ -560,7 +800,7 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
         </div>
       </div>
       <div class="mcard">
-        <div class="mtitle">Policy envelope <span class="mhint">what the agent may decide on its own</span></div>
+        <div class="mtitle"><span class="isq sm"><svg class="ic" aria-hidden="true"><use href="#i-key"/></svg></span><span>Policy envelope</span> <span class="mhint">what the agent may decide on its own</span></div>
         <div id="policy-list">
           <div class="placeholder">
             <b>Placeholder, styled and ready to wire.</b>
@@ -577,17 +817,18 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
 </main>
 
 <div class="rulesline">
-  <span class="rk">The four rules, in the order they run.</span>
-  <span class="sep">/</span>1 Refuse while anything is unresolved.
-  <span class="sep">/</span>2 Refuse a line somebody already claimed.
-  <span class="sep">/</span>3 Read the balance live from PayPal, never from our own table.
-  <span class="sep">/</span>4 Write the attempt row before the call.
-  <span class="sep">/</span>And one for the reconciler: only an answer may settle an unknown.
+  <span class="rk"><svg class="ic sm" aria-hidden="true"><use href="#i-shield"/></svg>The four rules, in the order they run.</span>
+  <span class="sep">/</span><span class="rn">1</span>Refuse while anything is unresolved.
+  <span class="sep">/</span><span class="rn">2</span>Refuse a line somebody already claimed.
+  <span class="sep">/</span><span class="rn">3</span>Read the balance live from PayPal, never from our own table.
+  <span class="sep">/</span><span class="rn">4</span>Write the attempt row before the call.
+  <span class="sep">/</span><svg class="ic sm" aria-hidden="true"><use href="#i-scales"/></svg>And one for the reconciler: only an answer may settle an unknown.
 </div>
 
 <footer class="foot">
-  Refusals are the product. <em>Blocked</em>, <em>LineAlreadyRefunded</em> and <em>ExceedsBalance</em> mean no money moved and nothing is wrong.
-  <em>PayPalUnknown</em> means the question is still open, and only the reconciler may close it.
+  <svg class="ic sm" aria-hidden="true"><use href="#i-info"/></svg>
+  <div>Refusals are the product. <em>Blocked</em>, <em>LineAlreadyRefunded</em> and <em>ExceedsBalance</em> mean no money moved and nothing is wrong.
+  <em>PayPalUnknown</em> means the question is still open, and only the reconciler may close it.</div>
 </footer>
 
 <script>
@@ -624,6 +865,32 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
 
   /* ------------------------------------------------------------ utils ---- */
   function el(id) { return document.getElementById(id); }
+
+  /* --------------------------------------------------------------- icons --
+   * One glyph per thing, resolved by name against the inline sprite. Every
+   * renderer below reaches for these two helpers rather than writing svg, so
+   * a state's picture is defined once and cannot drift between the banner,
+   * the chip, the grid row and the tile that all show the same state.
+   * --------------------------------------------------------------------- */
+  function icon(name, cls) {
+    return '<svg class="' + (cls || 'ic') + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+  }
+  function iconSquare(name, cls) {
+    return '<span class="' + (cls || 'isq') + '">' + icon(name) + '</span>';
+  }
+
+  // The vocabulary. A state always looks the same wherever it is drawn.
+  var STATE_ICON = {
+    unknown:   'help',
+    pending:   'clock',
+    succeeded: 'check-circle',
+    failed:    'minus-circle'
+  };
+  // And so does an outcome bucket, which is the same taxonomy one level up.
+  var KIND_ICON = {
+    ok: 'check-circle', refused: 'block', unknown: 'help',
+    escalated: 'escalate', info: 'info', busy: 'refresh', idle: 'dot'
+  };
 
   function esc(s) {
     return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -750,7 +1017,9 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   function applyTheme(mode, persist) {
     document.documentElement.setAttribute('data-theme', mode);
     var btn = el('theme-btn');
-    btn.textContent = mode === 'dark' ? 'Light' : 'Dark';
+    // The button shows where it takes you, so the glyph is the other mode's.
+    btn.innerHTML = icon(mode === 'dark' ? 'sun' : 'moon') +
+      '<span id="theme-label">' + (mode === 'dark' ? 'Light' : 'Dark') + '</span>';
     btn.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
     if (persist) storeTheme(mode);
     if (gridApi) {
@@ -770,7 +1039,14 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   function say(kind, title, detail, meta) {
     var b = el('banner');
     b.className = 'banner kind-' + kind;
-    el('bk-tag').textContent = TAGS[kind] || kind;
+    // The glyph, then the word. The three buckets have to be tellable apart in
+    // a video frame, and a tick, a slashed circle and a question mark are.
+    el('bk-tag').innerHTML = icon(KIND_ICON[kind] || 'info') +
+      '<span id="bk-tag-text">' + esc(TAGS[kind] || kind) + '</span>';
+    if (kind === 'busy') {
+      var g = el('bk-tag').querySelector('.ic');
+      if (g) g.classList.add('spin');
+    }
     el('bk-title').textContent = title;
     el('bk-detail').textContent = detail || '';
     el('bk-meta').textContent = meta || clockNow();
@@ -904,15 +1180,13 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
     var e = document.createElement('span');
     if (isTotals(p)) {
       e.className = 'totals-label';
-      e.textContent = 'Totals';
+      e.innerHTML = icon('list', 'ic sm') + '<span>Totals</span>';
       this.eGui = e;
       return;
     }
     var s = String(p.value === null || p.value === undefined ? '' : p.value).toLowerCase();
     e.className = 'pill pill-' + (s || 'failed');
-    var dot = document.createElement('i');
-    dot.className = 'dot';
-    e.appendChild(dot);
+    e.innerHTML = icon(STATE_ICON[s] || 'minus-circle');
     e.appendChild(document.createTextNode(STATE_LABEL[s] || (s || 'none')));
     this.eGui = e;
   };
@@ -933,7 +1207,8 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
       if (!id) return;
       var c = document.createElement('span');
       c.className = 'chip-line';
-      c.textContent = id;
+      c.innerHTML = icon('box');
+      c.appendChild(document.createTextNode(id));
       wrap.appendChild(c);
     });
     return wrap;
@@ -944,7 +1219,7 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   NoRows.prototype.init = function () {
     var e = document.createElement('div');
     e.className = 'no-rows';
-    e.innerHTML = '<b>No refund attempts yet</b>' +
+    e.innerHTML = icon('list', 'ic lg') + '<b>No refund attempts yet</b>' +
       'Send the customer message to the agent, or refund a line in the captures panel. ' +
       'Every attempt is written here before its PayPal call.';
     this.eGui = e;
@@ -1053,9 +1328,9 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
       // A stable row id is what lets applyTransaction update a row in place,
       // which is what makes the reconcile flash rather than redraw.
       getRowId: function (p) { return String(p.data.id); },
-      rowHeight: 52,
-      headerHeight: 44,
-      groupHeaderHeight: 34,
+      rowHeight: GRID_H.row,
+      headerHeight: GRID_H.header,
+      groupHeaderHeight: GRID_H.group,
       animateRows: true,
       enableCellTextSelection: true,
       tooltipShowDelay: 250,
@@ -1121,9 +1396,17 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
     }];
   }
 
+  // One source for the grid's vertical metrics: `gridOptions` sets them and
+  // `sizeGrid` measures with them. They were two numbers before, and the day
+  // the row height changed the first row went under the header.
+  var GRID_H = { row: 52, header: 44, group: 34, pad: 18 };
+
   function sizeGrid(n) {
     // 220px when empty, growing with the rows, capped so the page still scrolls.
-    var h = n ? Math.min(40 + 34 + (n + 1) * 44 + 16, 520) : 220;
+    // n + 1 because the pinned totals row is a row the body has to fit too.
+    var h = n
+      ? Math.min(GRID_H.group + GRID_H.header + (n + 1) * GRID_H.row + GRID_H.pad, 560)
+      : 220;
     el('grid').style.height = h + 'px';
   }
 
@@ -1251,13 +1534,15 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
       var hot = (s === 'unknown' && counts[s] > 0) ? ' hot' : '';
       var sel = (S.filter === s) ? ' sel' : '';
       return '<button class="schip s-' + s + hot + sel + '" data-state="' + s + '">' +
-             esc(STATE_LABEL[s]) + ' <span class="n">' + counts[s] + '</span></button>';
+             icon(STATE_ICON[s]) + esc(STATE_LABEL[s]) +
+             ' <span class="n">' + counts[s] + '</span></button>';
     }).join('');
-    html += '<button class="schip' + (S.filter ? '' : ' sel') + '" data-state="">All <span class="n">' +
-            attempts.length + '</span></button>';
+    html += '<button class="schip' + (S.filter ? '' : ' sel') + '" data-state="">' +
+            icon('list') + 'All <span class="n">' + attempts.length + '</span></button>';
 
     html += '<span class="ledger" title="Captured minus what PayPal says is still refundable. PayPal’s own number, read live. This is the figure that must not double.">' +
-            'Refunded at PayPal, live <b>' + esc(atPayPal === null ? 'unknown' : money(atPayPal, ccy)) + '</b>' +
+            icon('card', 'ic sm') + 'Refunded at PayPal, live <b>' +
+            esc(atPayPal === null ? 'unknown' : money(atPayPal, ccy)) + '</b>' +
             '<span class="ids">' + refundIds.length + ' refund id' + (refundIds.length === 1 ? '' : 's') +
             ' on record' + (refundIds.length ? ': ' + esc(refundIds.join(', ')) : '') + '</span>' +
             '</span>';
@@ -1280,11 +1565,14 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
 
     var head =
       '<div class="cap-h">' +
-        '<span class="cap-id">' + esc(c.id) + '</span>' +
-        '<span class="cap-meta">order ' + esc(c.order_id || 'none') + '</span>' +
-        '<span class="cap-meta">' + esc(c.buyer_email || 'no buyer email') + '</span>' +
-        '<span class="cap-meta">captured ' + esc(money(c.amount_minor, c.currency)) + '</span>' +
-        '<span class="cap-meta">' + esc(fmtDateTime(c.created_at)) + '</span>' +
+        iconSquare('receipt') +
+        '<span class="cap-idwrap">' +
+          '<span class="cap-id">' + esc(c.id) + '</span>' +
+          '<span class="cap-meta ilead">' + icon('tag', 'ic sm') + 'order ' + esc(c.order_id || 'none') + '</span>' +
+          '<span class="cap-meta ilead">' + icon('user', 'ic sm') + esc(c.buyer_email || 'no buyer email') + '</span>' +
+          '<span class="cap-meta ilead">' + icon('card', 'ic sm') + 'captured ' + esc(money(c.amount_minor, c.currency)) + '</span>' +
+          '<span class="cap-meta ilead">' + icon('clock', 'ic sm') + esc(fmtDateTime(c.created_at)) + '</span>' +
+        '</span>' +
         '<span class="cap-bal">' +
           '<span class="bl">Refundable at PayPal, live</span>' +
           '<span class="bv' + (hasErr ? ' err' : '') + '">' +
@@ -1294,23 +1582,27 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
       '</div>';
 
     var errStrip = hasErr
-      ? '<div class="balerr"><b>Rule 3 could not read the live balance:</b> ' + esc(c.balance_error) +
-        '. Backstop will refuse rather than trust its own table.</div>'
+      ? '<div class="balerr ilead">' + icon('alert') + '<span><b>Rule 3 could not read the live balance:</b> ' + esc(c.balance_error) +
+        '. Backstop will refuse rather than trust its own table.</span></div>'
       : '';
 
     var rows = lines.map(function (l) {
       var claimed = !!l.claimed;
       return '<div class="lrow">' +
+        '<span class="licon">' + icon('box') + '</span>' +
         '<span class="lid">' + esc(l.id) + '</span>' +
         '<span class="ldesc">' + esc(l.description || '') + '</span>' +
         '<span class="lsku">' + esc(l.sku || '') + '</span>' +
         '<span class="lright">' +
-          (claimed ? '<span class="claimed">Claimed</span><span class="willrefuse">rule 2 will refuse this</span>' : '') +
+          (claimed
+            ? '<span class="claimed">' + icon('lock') + 'Claimed</span>' +
+              '<span class="willrefuse">rule 2 will refuse this</span>'
+            : '') +
           '<span class="lamt num">' + esc(money(l.amount_minor, c.currency)) + '</span>' +
           '<button class="btn tiny" data-act="refund-line" ' +
             'data-cap="' + esc(c.id) + '" data-line="' + esc(l.id) + '" ' +
             'data-amount="' + esc(l.amount_minor) + '" data-desc="' + esc(l.description || l.id) + '">' +
-            (claimed ? 'Refund this line again' : 'Refund this line') +
+            icon('undo') + (claimed ? 'Refund this line again' : 'Refund this line') +
           '</button>' +
         '</span>' +
       '</div>';
@@ -1323,7 +1615,8 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   function renderCaptures(caps) {
     var host = el('captures');
     if (!caps.length) {
-      host.innerHTML = '<div class="empty">No captures. Press Reset demo data to seed one.</div>';
+      host.innerHTML = '<div class="empty">' + icon('card', 'ic lg') +
+        '<div>No captures. Press Reset demo data to seed one.</div></div>';
       return;
     }
     host.innerHTML = caps.map(capCard).join('');
@@ -1346,24 +1639,44 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   /* ------------------------------------------------------- the transcript - */
   function stepClass(type, name) {
     var t = (String(type || '') + ' ' + String(name || '')).toLowerCase();
+    if (t.indexOf('escalat') !== -1) return 't-escalate';
     if (t.indexOf('tool') !== -1 || t.indexOf('call') !== -1 || t.indexOf('action') !== -1) return 't-tool';
     return 't-think';
+  }
+
+  // Which glyph a step gets. The tool name is more specific than its type, so
+  // a recall reads as a recall and a refund reads as a refund, which is the
+  // thing somebody watching the transcript is actually following.
+  var STEP_ICON = { 't-tool': 'code', 't-think': 'sparkle', 't-escalate': 'escalate' };
+  var TOOL_ICON = {
+    recall: 'memory', remember: 'memory',
+    check_policy: 'key', get_order: 'receipt', get_refund_status: 'help',
+    refund_lines: 'undo', pay_vendor: 'card', escalate: 'escalate'
+  };
+  function stepIcon(cls, name) {
+    var n = String(name || '').toLowerCase();
+    return TOOL_ICON[n] || STEP_ICON[cls] || 'sparkle';
   }
 
   function renderTranscript(r) {
     var host = el('transcript');
     if (!r) {
-      host.innerHTML = '<div class="empty">The agent did not answer. Nothing was attempted.</div>';
+      host.innerHTML = '<div class="empty">' + icon('alert', 'ic lg') +
+        '<div>The agent did not answer. Nothing was attempted.</div></div>';
       return;
     }
     var steps = Array.isArray(r.steps) ? r.steps : [];
     var html = steps.map(function (s) {
-      return '<div class="step ' + stepClass(s && s.type, s && s.name) + '">' +
-        '<div class="step-head">' +
-          '<span class="step-type">' + esc((s && s.type) || 'step') + '</span>' +
-          (s && s.name ? '<span class="step-name">' + esc(s.name) + '</span>' : '') +
+      var cls = stepClass(s && s.type, s && s.name);
+      return '<div class="step ' + cls + '">' +
+        iconSquare(stepIcon(cls, s && s.name), 'isq sm') +
+        '<div class="step-body">' +
+          '<div class="step-head">' +
+            '<span class="step-type">' + esc((s && s.type) || 'step') + '</span>' +
+            (s && s.name ? '<span class="step-name">' + esc(s.name) + '</span>' : '') +
+          '</div>' +
+          '<pre class="step-content">' + esc(asText(s && s.content)) + '</pre>' +
         '</div>' +
-        '<pre class="step-content">' + esc(asText(s && s.content)) + '</pre>' +
       '</div>';
     }).join('');
 
@@ -1379,10 +1692,13 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
       else if (c.kind === 'info') { title = 'Agent issued no refund'; }
       else { title = 'Agent refused by the backstop'; }
       html += '<div class="outcome">' +
-        '<div class="ot">' + esc(title) + '</div>' +
-        '<div>' + esc(res.message || (res.ok ? 'The refund went through the same four rules as every other path.' : '')) + '</div>' +
-        (res.error_type ? '<div class="oe">' + esc(res.error_type) +
-            (c.rule ? ', ' + esc(RULE_LABEL[c.rule]) : '') + '</div>' : '') +
+        iconSquare(KIND_ICON[c.kind] || 'info', 'isq md s-' + (c.kind === 'ok' ? 'succeeded' : c.kind === 'unknown' ? 'unknown' : 'failed')) +
+        '<div class="obody">' +
+          '<div class="ot">' + esc(title) + '</div>' +
+          '<div>' + esc(res.message || (res.ok ? 'The refund went through the same four rules as every other path.' : '')) + '</div>' +
+          (res.error_type ? '<div class="oe">' + esc(res.error_type) +
+              (c.rule ? ', ' + esc(RULE_LABEL[c.rule]) : '') + '</div>' : '') +
+        '</div>' +
       '</div>';
     }
     host.innerHTML = html;
@@ -1392,19 +1708,41 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
   /* ------------------------------------------------- memory and the policy */
   // Both panels take a list of strings or a list of {label, value, source}.
   // Until the agent returns them, the markup placeholders stay as they are.
+  // Which glyph a fact gets, matched on its label the way the admin dashboard
+  // matches a stat key. Falls back to the panel's own glyph.
+  var FACT_ICON = [
+    [/limit|cap\b|max|allowance/, 'card'],
+    [/per 90|allowed|count|times/, 'list'],
+    [/buyer|customer|this user/, 'user'],
+    [/approval|escalat/, 'escalate'],
+    [/refund/, 'undo'],
+    [/decision|decided/, 'sparkle'],
+    [/order|capture/, 'receipt'],
+    [/polic|rule/, 'key']
+  ];
+  function factIcon(label, fallback) {
+    var l = String(label || '').toLowerCase();
+    for (var i = 0; i < FACT_ICON.length; i++) {
+      if (FACT_ICON[i][0].test(l)) return FACT_ICON[i][1];
+    }
+    return fallback;
+  }
+
   function factRows(items, withSource) {
     return items.map(function (it) {
       if (it === null || it === undefined) return '';
       if (typeof it === 'string') {
-        return '<div class="mrow"><span class="mv">' + esc(it) + '</span></div>';
+        return '<div class="mrow"><span class="mi">' + icon('dot', 'ic xs') + '</span>' +
+               '<span class="mv">' + esc(it) + '</span></div>';
       }
       var label = it.label || it.key || it.name || '';
       var value = it.value === undefined ? (it.text || it.detail || '') : it.value;
       var src = withSource ? (it.source || it.from || '') : '';
       return '<div class="mrow">' +
+        '<span class="mi">' + icon(factIcon(label, withSource ? 'sparkle' : 'key'), 'ic sm') + '</span>' +
         (label ? '<span class="mk">' + esc(label) + '</span>' : '') +
         '<span class="mv">' + esc(asText(value)) + '</span>' +
-        (src ? '<span class="msrc">' + esc(src) + '</span>' : '') +
+        (src ? '<span class="msrc">' + icon('tag') + esc(src) + '</span>' : '') +
       '</div>';
     }).join('');
   }
@@ -1427,7 +1765,8 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
     if (facts) el('memory-facts').innerHTML = factRows(facts, true);
     if (policy) el('policy-list').innerHTML = factRows(policy, false);
     if (facts || policy) {
-      el('memory-badge').innerHTML = '<span>Envelope</span> <b>' + (policy ? 'live' : 'memory only') + '</b>';
+      el('memory-badge').innerHTML = icon('key', 'ic sm') +
+        '<span>Envelope</span> <b>' + (policy ? 'live' : 'memory only') + '</b>';
     }
     // Keep the memory beside the attempt it explains, for the detail panel.
     if (facts && res.attempt_id) S.decisions[String(res.attempt_id)] = facts;
@@ -1485,7 +1824,7 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
     } else {
       head = '<b>Abandoned attempts promoted.</b> A pending nobody finished becomes unknown, never failed.';
     }
-    el('recon-head').innerHTML = head;
+    el('recon-head').innerHTML = icon('scales', 'ic sm') + '<span>' + head + '</span>';
   }
 
   /* ================================ ACTIONS ============================== */
@@ -1517,7 +1856,7 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
     el('escalation').classList.remove('show');
     el('transcript').innerHTML =
       '<div class="empty">No transcript yet. Send the message and every tool call the agent makes appears here.</div>';
-    el('agent-mode').innerHTML = '<span>Agent</span> <b>idle</b>';
+    el('agent-mode').innerHTML = icon('sparkle', 'ic sm') + '<span>Agent</span> <b>idle</b>';
     say('info', 'Demo data reset', 'Attempts cleared and the demo capture re-seeded.');
     await refresh();
   }
@@ -1575,18 +1914,18 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
     var capId = el('agent-cap').value;
     var msg = el('agent-msg').value;
     if (!capId) { say('info', 'No capture selected', 'Press Reset demo data to seed one.'); return; }
-    el('agent-mode').innerHTML = '<span>Agent</span> <b>thinking</b>';
+    el('agent-mode').innerHTML = icon('sparkle', 'ic sm spin') + '<span>Agent</span> <b>thinking</b>';
     el('transcript').innerHTML = '<div class="empty">The agent is working.</div>';
     el('escalation').classList.remove('show');
     setBusy(true, 'Agent is reading the message');
     var r = await call('/api/agent', { capture_id: capId, message: msg });
     setBusy(false);
     if (!r) {
-      el('agent-mode').innerHTML = '<span>Agent</span> <b>no answer</b>';
+      el('agent-mode').innerHTML = icon('alert', 'ic sm') + '<span>Agent</span> <b>no answer</b>';
       renderTranscript(null);
       return;
     }
-    el('agent-mode').innerHTML = '<span>Agent</span> <b>' + esc(r.mode || 'done') + '</b>';
+    el('agent-mode').innerHTML = icon('sparkle', 'ic sm') + '<span>Agent</span> <b>' + esc(r.mode || 'done') + '</b>';
     renderTranscript(r);
     renderMemory(r);
     renderEscalation(r);
