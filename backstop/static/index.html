@@ -42,6 +42,20 @@
      modes so the loudest row looks the same on camera either way. */
   --unknown-row: rgba(255,107,87,0.10);
 
+  /* Depth instead of outlines. A bordered box inside a bordered box inside a
+     bordered box is what makes an interface look a decade old; surfaces should
+     separate by elevation and whitespace, and a hairline should be the
+     exception rather than the default. */
+  --shadow:    0 1px 2px rgba(16,24,40,.04), 0 2px 6px rgba(16,24,40,.05);
+  --shadow-lg: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.07);
+  /* Controls need their own step. In light mode `field` and `surface` are both
+     white, so a control filled with either is invisible on a panel. */
+  --control:       #EFF2F8;
+  --control-hover: #E4E8F2;
+  --inset:         #F6F8FC;
+  --r-ctl: 10px;
+  --r-card: 14px;
+
   --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 :root[data-theme="dark"]{
@@ -57,6 +71,13 @@
   --line2:       rgba(255,240,228,0.16);
   --danger:      #FF6B57;
   --success:     #57D98A;
+  /* On a dark ground a drop shadow reads as dirt, so depth comes from the
+     surface sitting lighter than the page instead. */
+  --shadow:    0 1px 0 rgba(255,240,228,.04);
+  --shadow-lg: 0 1px 0 rgba(255,240,228,.06), 0 12px 32px rgba(0,0,0,.45);
+  --control:       #221B17;
+  --control-hover: #2B2320;
+  --inset:         #141010;
 }
 
 *{ box-sizing:border-box; }
@@ -82,35 +103,38 @@ header.top{
   position:sticky; top:0; z-index:50;
   background:var(--surface);
   border-bottom:1px solid var(--line);
+  backdrop-filter:saturate(140%) blur(8px);
 }
 body.armed header.top{ border-top:3px solid var(--ink); }
-.hrow{ display:flex; align-items:center; gap:16px; padding:13px 22px; flex-wrap:wrap; }
+.hrow{ display:flex; align-items:center; gap:10px; padding:14px 32px; flex-wrap:wrap; }
 .brand{ display:flex; align-items:baseline; gap:12px; min-width:0; }
-.brand h1{ margin:0; font-size:25px; font-weight:800; letter-spacing:-.012em; }
+.brand h1{ margin:0; font-size:21px; font-weight:800; letter-spacing:-.018em; }
 .brand .tag{ color:var(--muted); font-size:14.5px; font-weight:500; }
 .spacer{ flex:1 1 auto; }
 
+/* Controls are filled, not outlined. Hover lifts the fill rather than
+   darkening a border, which is what keeps a dense toolbar calm. */
 .badge{
   display:inline-flex; align-items:center; gap:7px;
-  padding:6px 12px; border-radius:8px;
-  background:var(--field); border:1px solid var(--line);
+  padding:7px 13px; border-radius:var(--r-ctl);
+  background:var(--control); border:0;
   font-size:14px; font-weight:600; color:var(--muted); white-space:nowrap;
 }
 .badge b{ color:var(--ink); font-weight:700; }
 
 .btn{
   display:inline-flex; align-items:center; gap:8px;
-  padding:9px 15px; border-radius:9px; cursor:pointer;
-  background:transparent; color:var(--ink2);
-  border:1px solid var(--line2);
+  padding:10px 16px; border-radius:var(--r-ctl); cursor:pointer;
+  background:var(--control); color:var(--ink2);
+  border:0;
   font-weight:600; font-size:15px;
-  transition:border-color .14s, color .14s, opacity .14s;
+  transition:background .14s, color .14s, opacity .14s, box-shadow .14s;
   white-space:nowrap;
 }
-.btn:hover{ border-color:var(--ink3); color:var(--ink); }
+.btn:hover{ background:var(--control-hover); color:var(--ink); }
 .btn:active{ transform:translateY(1px); }
-.btn[disabled]{ opacity:.45; cursor:default; }
-.btn.tiny{ padding:6px 12px; font-size:14px; border-radius:7px; }
+.btn[disabled]{ opacity:.45; cursor:default; box-shadow:none; }
+.btn.tiny{ padding:7px 13px; font-size:14px; }
 /* The single accent use in this file. */
 .btn.primary{
   background:var(--accent);
@@ -124,11 +148,11 @@ body.armed header.top{ border-top:3px solid var(--ink); }
 .chaos{
   display:inline-flex; align-items:center; gap:11px;
   padding:8px 15px 8px 12px; border-radius:9px; cursor:pointer;
-  background:transparent; border:1px solid var(--line2); color:var(--ink2);
+  background:var(--control); border:0; color:var(--ink2);
   font-weight:600; font-size:15px;
   transition:background .14s, border-color .14s, color .14s;
 }
-.chaos:hover{ border-color:var(--ink3); }
+.chaos:hover{ background:var(--control-hover); }
 .chaos .sw{
   width:46px; height:24px; border-radius:12px; background:var(--line2);
   position:relative; flex:none; transition:background .15s;
@@ -139,7 +163,7 @@ body.armed header.top{ border-top:3px solid var(--ink); }
   transition:left .16s, background .16s;
 }
 .chaos .lbl-on{ display:none; }
-body.armed .chaos{ background:var(--ink); border-color:var(--ink); color:var(--bg); font-weight:700; }
+body.armed .chaos{ background:var(--ink); color:var(--surface); font-weight:700; }
 body.armed .chaos .sw{ background:var(--bg); }
 body.armed .chaos .sw::after{ left:25px; background:var(--ink); animation:pulse 1.1s ease-in-out infinite; }
 body.armed .chaos .lbl-off{ display:none; }
@@ -149,7 +173,7 @@ body.armed .chaos .lbl-on{ display:inline; }
 .ticker{ display:none; }
 body.armed .ticker{
   display:flex; align-items:center; gap:11px;
-  padding:9px 22px; background:var(--bg-raised);
+  padding:10px 32px; background:var(--inset);
   border-top:1px solid var(--line);
   color:var(--ink2); font-weight:600; font-size:14.5px;
 }
@@ -158,13 +182,13 @@ body.armed .ticker{
 /* ----------------------------------------------------------------- banner */
 .banner{
   display:flex; align-items:center; gap:15px;
-  padding:12px 22px; border-top:1px solid var(--line);
-  background:var(--bg-raised); min-height:58px;
+  padding:14px 32px; border-top:1px solid var(--line);
+  background:var(--surface); min-height:58px;
 }
 .banner .bk-tag{
   flex:none; padding:4px 11px; border-radius:7px;
   font-size:13.5px; font-weight:700;
-  border:1px solid var(--line2); background:var(--field); color:var(--muted);
+  border:0; background:var(--control); color:var(--muted);
 }
 .banner .bk-body{ min-width:0; display:flex; flex-direction:column; gap:1px; }
 .banner .bk-title{ font-weight:800; font-size:17px; }
@@ -176,44 +200,50 @@ body.armed .ticker{
 .banner.kind-unknown .bk-title{ color:var(--danger); }
 
 /* ----------------------------------------------------------------- layout */
-main{ max-width:1680px; margin:0 auto; padding:18px 22px 0; }
+main{ max-width:1600px; margin:0 auto; padding:28px 32px 0; }
 section.panel{
-  background:var(--surface); border:1px solid var(--line); border-radius:12px;
-  margin-bottom:18px; overflow:hidden;
+  background:var(--surface); border:0; border-radius:var(--r-card);
+  box-shadow:var(--shadow);
+  margin-bottom:28px; overflow:hidden;
 }
+/* A section header is a label, not a title bar: no rule under it, no second
+   background, and the heading sits quieter than the data it introduces. */
 .ph{
-  display:flex; align-items:center; gap:13px; flex-wrap:wrap;
-  padding:13px 18px; border-bottom:1px solid var(--line); background:var(--bg-raised);
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  padding:22px 26px 0; background:transparent; border:0;
 }
-.ph h2{ margin:0; font-size:18px; font-weight:800; color:var(--ink); }
-.ph .sub{ color:var(--muted); font-size:14.5px; }
-.pb{ padding:16px 18px; }
+.ph h2{
+  margin:0; font-size:15px; font-weight:700; color:var(--muted);
+  letter-spacing:.005em;
+}
+.ph .sub{ color:var(--ink3); font-size:14px; }
+.pb{ padding:18px 26px 26px; }
 
 /* ------------------------------------------------------------------ agent */
 .agent-grid{ display:grid; grid-template-columns:minmax(360px,1fr) 1.4fr; gap:18px; }
 @media (max-width:1100px){ .agent-grid{ grid-template-columns:1fr; } }
 textarea#agent-msg{
   width:100%; min-height:98px; resize:vertical;
-  background:var(--field); color:var(--ink); border:1px solid var(--line2); border-radius:10px;
-  padding:12px 14px; font-size:16px; font-weight:500; line-height:1.5;
+  background:var(--inset); color:var(--ink); border:0; border-radius:var(--r-ctl);
+  padding:14px 16px; font-size:16px; font-weight:500; line-height:1.5;
 }
-textarea#agent-msg:focus{ outline:none; border-color:var(--ink3); }
+textarea#agent-msg:focus{ outline:2px solid var(--ink3); outline-offset:-2px; }
 .field-row{ display:flex; align-items:center; gap:10px; margin-top:11px; flex-wrap:wrap; }
 label.flabel{ color:var(--muted); font-size:14px; font-weight:600; }
 select{
-  background:var(--field); color:var(--ink); border:1px solid var(--line2);
-  border-radius:8px; padding:8px 11px; font-size:15px; font-weight:600;
+  background:var(--control); color:var(--ink); border:0;
+  border-radius:var(--r-ctl); padding:9px 12px; font-size:15px; font-weight:600;
 }
 .transcript{
-  background:var(--bg-raised); border:1px solid var(--line); border-radius:10px;
-  padding:12px; max-height:360px; overflow:auto; min-height:98px;
+  background:var(--inset); border:0; border-radius:var(--r-ctl);
+  padding:14px; max-height:360px; overflow:auto; min-height:98px;
 }
 .step{ border-left:2px solid var(--line2); padding:5px 0 7px 12px; margin-bottom:9px; }
 .step:last-child{ margin-bottom:0; }
 .step-head{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
 .step-type{
-  font-size:12.5px; font-weight:700; padding:2px 8px; border-radius:5px;
-  background:var(--field); color:var(--muted); border:1px solid var(--line2);
+  font-size:12.5px; font-weight:700; padding:3px 9px; border-radius:6px;
+  background:var(--control); color:var(--muted); border:0;
 }
 .step-name{ font-weight:700; font-size:15px; color:var(--ink); }
 .step-content{
@@ -223,8 +253,8 @@ select{
 }
 .step.t-tool{ border-left-color:var(--ink3); }
 .outcome{
-  margin-top:11px; padding:11px 13px; border-radius:10px; border:1px solid var(--line2);
-  background:var(--bg-raised); font-size:15px;
+  margin-top:12px; padding:13px 15px; border-radius:var(--r-ctl); border:0;
+  background:var(--inset); font-size:15px;
 }
 .outcome .ot{ font-weight:800; font-size:15px; }
 .outcome .oe{ color:var(--muted); font-size:14px; margin-top:4px; }
@@ -232,8 +262,8 @@ select{
 /* An escalation is the agent declining to act. Informational, never an error. */
 .escalation{ display:none; }
 .escalation.show{
-  display:block; margin-top:13px; padding:12px 14px; border-radius:10px;
-  background:var(--bg-raised); border:1px solid var(--line2);
+  display:block; margin-top:14px; padding:14px 16px; border-radius:var(--r-ctl);
+  background:var(--inset); border:0;
 }
 .escalation .etag{
   display:inline-block; padding:3px 10px; border-radius:6px; font-size:13px; font-weight:700;
@@ -245,10 +275,10 @@ select{
 /* ----------------------------------------------------------------- memory */
 .memory-grid{ display:grid; grid-template-columns:1.2fr 1fr; gap:16px; }
 @media (max-width:1000px){ .memory-grid{ grid-template-columns:1fr; } }
-.mcard{ background:var(--bg-raised); border:1px solid var(--line); border-radius:11px; padding:13px 15px; }
+.mcard{ background:var(--inset); border:0; border-radius:var(--r-ctl); padding:16px 18px; }
 .mcard .mtitle{ font-weight:700; font-size:15.5px; margin-bottom:8px; }
 .mcard .mtitle .mhint{ color:var(--muted); font-weight:500; font-size:14px; margin-left:8px; }
-.mrow{ display:flex; align-items:baseline; gap:12px; padding:7px 0; border-bottom:1px solid var(--line); }
+.mrow{ display:flex; align-items:baseline; gap:12px; padding:9px 0; border-bottom:1px solid var(--line); }
 .mrow:last-child{ border-bottom:0; }
 .mrow .mk{ color:var(--muted); font-size:14px; font-weight:600; min-width:150px; }
 .mrow .mv{ font-size:15px; color:var(--ink); overflow-wrap:anywhere; }
@@ -257,26 +287,27 @@ select{
   padding:2px 9px; border-radius:6px; border:1px solid var(--line2); color:var(--muted);
 }
 .placeholder{
-  border:1px dashed var(--line2); border-radius:10px; padding:13px;
+  border:1px dashed var(--line2); border-radius:var(--r-ctl); padding:15px;
   color:var(--muted); font-size:14.5px; line-height:1.5;
 }
 .placeholder b{ color:var(--ink2); font-weight:700; }
 
 /* ------------------------------------------------------------------ chips */
-.chips-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:12px 18px 0; }
+.chips-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:4px 26px 14px; }
 .schip{
   display:inline-flex; align-items:center; gap:8px; cursor:pointer;
-  padding:6px 12px; border-radius:8px; border:1px solid var(--line2); background:transparent;
+  padding:7px 14px; border-radius:999px; border:0; background:var(--control);
   font-size:14.5px; font-weight:600; color:var(--ink2);
 }
 .schip .n{ font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
-.schip:hover{ border-color:var(--ink3); }
-.schip.sel{ border-color:var(--ink); color:var(--ink); }
-.schip.s-unknown.hot{ border-color:var(--danger); color:var(--danger); }
+.schip:hover{ background:var(--control-hover); }
+.schip.sel{ background:var(--ink); color:var(--surface); }
+.schip.sel .n{ color:var(--surface); }
+.schip.s-unknown.hot{ background:var(--unknown-row); color:var(--danger); }
 .schip.s-unknown.hot .n{ color:var(--danger); }
 .ledger{
   margin-left:auto; display:inline-flex; align-items:baseline; gap:10px;
-  padding:6px 13px; border-radius:8px; border:1px solid var(--line2);
+  padding:8px 15px; border-radius:var(--r-ctl); border:0; background:var(--inset);
   font-size:14.5px; color:var(--muted);
 }
 .ledger b{ font-size:17px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
@@ -286,27 +317,27 @@ select{
 .livedot i{ width:8px; height:8px; border-radius:50%; background:var(--ink3); animation:pulse 2.2s infinite; }
 
 input.qf{
-  background:var(--field); color:var(--ink); border:1px solid var(--line2); border-radius:8px;
-  padding:8px 12px; font-size:15px; min-width:210px; font-weight:500;
+  background:var(--control); color:var(--ink); border:0; border-radius:var(--r-ctl);
+  padding:10px 13px; font-size:15px; min-width:220px; font-weight:500;
 }
-input.qf:focus{ outline:none; border-color:var(--ink3); }
+input.qf:focus{ outline:2px solid var(--ink3); outline-offset:-2px; }
 input.qf::placeholder{ color:var(--ink3); }
 
 /* -------------------------------------------------------------- reconcile */
-.recon{ display:none; padding:12px 18px 0; }
+.recon{ display:none; padding:0 26px 18px; }
 .recon.show{ display:block; }
 .recon .rhead{ font-size:15.5px; margin-bottom:9px; color:var(--ink2); }
 .recon .rhead b{ color:var(--ink); font-weight:800; }
 .recon .tiles{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
 @media (max-width:900px){ .recon .tiles{ grid-template-columns:repeat(2,1fr); } }
-.rtile{ border:1px solid var(--line); border-radius:10px; padding:9px 13px; background:var(--bg-raised); }
+.rtile{ border:0; border-radius:var(--r-ctl); padding:12px 15px; background:var(--inset); }
 .rtile .rl{ font-size:13.5px; font-weight:700; color:var(--muted); }
 .rtile .rv{ font-size:24px; font-weight:800; line-height:1.2; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 .rtile .rx{ font-size:13.5px; color:var(--muted); margin-top:2px; overflow-wrap:anywhere; }
 .rtile.t-still.hot .rv{ color:var(--danger); }
 
 /* --------------------------------------------------------- detail panel */
-.detail{ border-top:1px solid var(--line); background:var(--bg-raised); padding:14px 18px; }
+.detail{ border-top:1px solid var(--line); background:var(--inset); padding:18px 26px; }
 .detail .dh{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
 .detail .dh h3{ margin:0; font-size:16px; font-weight:800; }
 .detail .dgrid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px 20px; }
@@ -316,19 +347,20 @@ input.qf::placeholder{ color:var(--ink3); }
 .detail .hint{ color:var(--muted); font-size:14.5px; }
 
 /* --------------------------------------------------------------- captures */
-.cap{ border:1px solid var(--line); border-radius:11px; background:var(--bg-raised); margin-bottom:13px; overflow:hidden; }
+.cap{ border:0; border-radius:var(--r-ctl); background:var(--inset); margin-bottom:14px; overflow:hidden; }
 .cap:last-child{ margin-bottom:0; }
-.cap-h{ display:flex; align-items:center; gap:15px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--line); }
+.cap-h{ display:flex; align-items:center; gap:15px; flex-wrap:wrap; padding:16px 18px 12px; border:0; }
 .cap-id{ font-size:18px; font-weight:800; }
 .cap-meta{ color:var(--muted); font-size:14px; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 .cap-bal{ margin-left:auto; text-align:right; }
 .cap-bal .bl{ display:block; font-size:13px; color:var(--muted); font-weight:600; }
 .cap-bal .bv{ display:block; font-size:25px; font-weight:800; color:var(--ink); line-height:1.2; font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; }
 .cap-bal .bv.err{ font-size:17px; color:var(--muted); }
-.balerr{ padding:10px 16px; background:var(--surface); border-bottom:1px solid var(--line); color:var(--ink2); font-size:14.5px; }
+.balerr{ padding:12px 18px; background:transparent; border-top:1px solid var(--line); color:var(--ink2); font-size:14.5px; }
 .balerr b{ color:var(--ink); font-weight:700; }
-.lrow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:10px 16px; border-bottom:1px solid var(--line); }
+.lrow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:12px 18px; border-top:1px solid var(--line); }
 .lrow:last-child{ border-bottom:0; }
+.cap-h + .lrow{ border-top:1px solid var(--line); }
 .lid{ font-size:15px; font-weight:700; color:var(--ink2); min-width:88px; }
 .ldesc{ font-size:16px; }
 .lsku{ font-size:13.5px; color:var(--ink3); }
@@ -354,11 +386,18 @@ input.qf::placeholder{ color:var(--ink3); }
 .pill-unknown{ color:var(--danger); font-weight:800; }
 .pill-unknown .dot{ background:var(--danger); animation:pulse 1.1s ease-in-out infinite; }
 
+/* A grid cell is a flex container, so an inline-block child stretches to the
+   full row height and its border then reads as a box spilling out of the row.
+   align-self plus an explicit line-height keeps the chip chip-sized. */
 .chip-line{
-  display:inline-block; margin-right:5px; padding:2px 8px; border-radius:6px;
-  border:1px solid var(--line2); color:var(--ink2);
-  font-size:13.5px; font-weight:600;
+  display:inline-flex; align-items:center; align-self:center;
+  margin-right:5px; padding:3px 10px; border-radius:999px;
+  background:var(--control); border:0; color:var(--ink2);
+  font-size:13px; font-weight:600; line-height:1.35; white-space:nowrap;
 }
+.ag-cell .chip-line:last-child{ margin-right:0; }
+/* The renderer returns a span, so THAT is the flex child that stretches. */
+.ag-cell[col-id="lines"] > span{ display:inline-flex; align-items:center; height:100%; }
 
 /* The only tinted row in the grid. Beats .ag-row-odd on specificity. */
 .ag-row.bs-unknown{
@@ -685,24 +724,24 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
       .withPart(light ? AG.colorSchemeLight : AG.colorSchemeDark)
       .withParams({
         backgroundColor:            light ? '#FFFFFF' : '#171210',
-        chromeBackgroundColor:      light ? '#FAFBFF' : '#1E1815',
-        headerBackgroundColor:      light ? '#FAFBFF' : '#1E1815',
+        chromeBackgroundColor:      light ? '#FFFFFF' : '#171210',
+        headerBackgroundColor:      light ? '#FFFFFF' : '#171210',
         foregroundColor:            light ? '#21293B' : '#FBF3EA',
         headerTextColor:            light ? 'rgba(33,41,59,0.60)' : 'rgba(255,240,228,0.56)',
-        borderColor:                light ? '#E5E8F0' : 'rgba(255,240,228,0.09)',
-        oddRowBackgroundColor:      light ? '#FAFBFF' : '#1A1512',
-        rowHoverColor:              light ? '#F2F4FA' : 'rgba(255,240,228,0.06)',
-        selectedRowBackgroundColor: light ? '#E5E8F0' : 'rgba(255,240,228,0.09)',
+        borderColor:                light ? '#EEF1F7' : 'rgba(255,240,228,0.07)',
+        oddRowBackgroundColor:      light ? '#FFFFFF' : '#171210',
+        rowHoverColor:              light ? '#F6F8FC' : 'rgba(255,240,228,0.05)',
+        selectedRowBackgroundColor: light ? '#EFF2F8' : 'rgba(255,240,228,0.08)',
         // Neutral on purpose: the accent is spent on the primary button.
         accentColor:                light ? 'rgba(33,41,59,0.42)' : 'rgba(255,240,228,0.38)',
-        inputBackgroundColor:       light ? '#FFFFFF' : '#1E1815',
+        inputBackgroundColor:       light ? '#EFF2F8' : '#221B17',
         menuBackgroundColor:        light ? '#FFFFFF' : '#1A1512',
         fontFamily: FONT_STACK,
         dataFontSize: '15px',
         headerFontSize: '13.5px',
         headerFontWeight: 700,
         cellHorizontalPadding: 14,
-        spacing: 7,
+        spacing: 8,
         wrapperBorderRadius: '10px',
         browserColorScheme: light ? 'light' : 'dark'
       });
@@ -1014,8 +1053,8 @@ footer.foot em{ color:var(--ink2); font-style:normal; font-weight:700; }
       // A stable row id is what lets applyTransaction update a row in place,
       // which is what makes the reconcile flash rather than redraw.
       getRowId: function (p) { return String(p.data.id); },
-      rowHeight: 44,
-      headerHeight: 40,
+      rowHeight: 52,
+      headerHeight: 44,
       groupHeaderHeight: 34,
       animateRows: true,
       enableCellTextSelection: true,
